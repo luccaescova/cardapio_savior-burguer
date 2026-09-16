@@ -31,7 +31,7 @@ const SWAP_MEAT_PRICE = 10.00;
 const cart = [];
 let selectedProduct = null;
 
-// Elementos DOM
+// Elementos DOM - Modal de Quantidade / Personalização
 const qtyModal = document.getElementById('quantityModal');
 const modalProductName = document.getElementById('modalProductName');
 const productQtyInput = document.getElementById('productQty');
@@ -55,6 +55,7 @@ const orderItems = document.getElementById('orderItems');
 const totalElement = document.getElementById('total');
 const cartEmptyElement = document.getElementById('cartEmpty');
 const btnCheckout = document.getElementById('btnCheckout');
+const customerNameInput = document.getElementById('customerNameInput');
 
 // Elementos DOM - Modal de Sucesso
 const orderSuccessModal = document.getElementById('orderSuccessModal');
@@ -65,9 +66,10 @@ function formatCurrency(value) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// Reseta completamente o carrinho e atualiza a interface
+// Reseta o carrinho e limpa o nome do cliente
 function resetCart() {
   cart.length = 0;
+  if (customerNameInput) customerNameInput.value = '';
   renderCart();
 }
 
@@ -158,7 +160,7 @@ function openQuantityModal(name, price, isDrink = false) {
   if (swapMeatCheckbox) swapMeatCheckbox.checked = false;
 
   if (isDrink) {
-    meatOptionSection.style.display = 'none';
+    if (meatOptionSection) meatOptionSection.style.display = 'none';
     extrasSection.style.display = 'none';
     renderDrinkOptions(name);
   } else {
@@ -191,7 +193,7 @@ btnMinus.addEventListener('click', () => {
 
 btnCancelQty.addEventListener('click', closeQuantityModal);
 
-// Confirmação do item
+// Confirmar adição de item ao carrinho
 btnConfirmQty.addEventListener('click', () => {
   if (!selectedProduct) return;
 
@@ -250,7 +252,7 @@ btnConfirmQty.addEventListener('click', () => {
   closeQuantityModal();
 });
 
-// Renderização do carrinho
+// Renderização do Carrinho
 function renderCart() {
   orderItems.innerHTML = '';
   const hasItems = cart.length > 0;
@@ -269,7 +271,6 @@ function renderCart() {
       detailsHtml += `<span style="display: block; font-size: 0.8em; color: #ff6b6b;">Sem: ${item.removedList.join(', ')}</span>`;
     }
     if (item.extras && item.extras.length > 0) {
-      // Exibe nome + valor do adicional
       const extrasStr = item.extras.map(e => `+${e.name} (${formatCurrency(e.price)})`).join(', ');
       detailsHtml += `<span style="display: block; font-size: 0.8em; color: #ff8c00;">Adicionais: ${extrasStr}</span>`;
     }
@@ -307,35 +308,74 @@ function renderCart() {
 }
 
 // Finalização do pedido
-btnCheckout.addEventListener('click', () => {
+btnCheckout.addEventListener('click', async () => {
   if (cart.length === 0) {
     alert('Seu carrinho está vazio!');
+    return;
+  }
+
+  const customerName = customerNameInput ? customerNameInput.value.trim() : '';
+  if (!customerName) {
+    alert('Por favor, informe seu nome para a chamada do pedido.');
+    if (customerNameInput) customerNameInput.focus();
     return;
   }
 
   const totalItemsCount = cart.reduce((acc, item) => acc + item.qty, 0);
   const totalValue = cart.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
 
-  orderSuccessDetails.innerHTML = `
-    <p style="margin-bottom: 4px;"><strong>Qtd. de itens:</strong> ${totalItemsCount}</p>
-    <p style="margin-bottom: 0;"><strong>Total:</strong> ${formatCurrency(totalValue)}</p>
-  `;
+  const payload = {
+    customerName,
+    items: cart,
+    total: totalValue
+  };
 
-  // Fecha o modal do carrinho
-  cartModal.classList.remove('active');
-  cartModal.setAttribute('aria-hidden', 'true');
+  try {
+    btnCheckout.disabled = true;
+    btnCheckout.textContent = 'Enviando...';
 
-  // Exibe a tela de confirmação do pedido
-  orderSuccessModal.classList.add('active');
-  orderSuccessModal.setAttribute('aria-hidden', 'false');
+    const response = await fetch('http://localhost:3000/api/order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error('Falha ao enviar pedido');
+    }
+
+    const data = await response.json();
+
+    // Exibe a confirmação destacando apenas o NOME do cliente
+    orderSuccessDetails.innerHTML = `
+      <p style="font-size: 1.5rem; color: #ff8c00; margin-bottom: 12px; text-align: center; text-transform: uppercase;"><strong>${data.customerName}</strong></p>
+      <p style="margin-bottom: 4px;"><strong>Qtd. de itens:</strong> ${totalItemsCount}</p>
+      <p style="margin-bottom: 8px;"><strong>Total:</strong> ${formatCurrency(totalValue)}</p>
+      <p style="font-size: 0.85rem; color: #aaa; text-align: center; margin-top: 12px;">Acompanhe seu nome no painel da loja!</p>
+    `;
+
+    cartModal.classList.remove('active');
+    cartModal.setAttribute('aria-hidden', 'true');
+
+    orderSuccessModal.classList.add('active');
+    orderSuccessModal.setAttribute('aria-hidden', 'false');
+
+  } catch (err) {
+    alert('Ocorreu um erro ao enviar seu pedido. Verifique se o servidor backend está rodando.');
+    console.error(err);
+  } finally {
+    btnCheckout.disabled = false;
+    btnCheckout.textContent = 'Finalizar Pedido';
+  }
 });
 
-// Ação do botão "Entendido / Voltar ao Cardápio"
+// Fechar modal de sucesso
 btnCloseSuccessModal.addEventListener('click', () => {
   orderSuccessModal.classList.remove('active');
   orderSuccessModal.setAttribute('aria-hidden', 'true');
   
-  // Reseta o carrinho e rola a página suavemente para o topo (menu principal)
   resetCart();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Savior Burguer - Painel do Atendente</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #121212; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+    h1 { color: #ff8c00; margin-bottom: 20px; font-size: 2rem; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+    .card { background: #1e1e1e; border: 2px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; justify: space-between; }
+    .card.pronto { border-color: #00f5d4; background-color: #1a2e2b; }
+    .card h3 { color: #ff8c00; font-size: 1.4rem; margin-bottom: 8px; word-break: break-word; }
+    .card.pronto h3 { color: #00f5d4; }
+    .card p { margin-bottom: 8px; font-size: 0.95rem; }
+    .card ul { list-style: none; margin-bottom: 15px; padding-left: 0; }
+    .card ul li { font-size: 0.9rem; color: #ccc; margin-bottom: 4px; border-bottom: 1px dashed #333; padding-bottom: 2px; }
+    .btn-announce { background: #ff8c00; color: #000; font-weight: bold; border: none; padding: 12px; border-radius: 5px; width: 100%; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .btn-announce:hover { background: #e07b00; }
+    .card.pronto .btn-announce { background: #00f5d4; color: #000; }
+    .card.pronto .btn-announce:hover { background: #00c2a8; }
+  </style>
+</head>
+<body>
+  <h1>Painel do Atendente - Savior Burguer</h1>
+  <div id="ordersGrid" class="grid"></div>
+
+  <script>
+    const socket = io('http://localhost:3000');
+    const ordersGrid = document.getElementById('ordersGrid');
+
+    socket.on('orders_update', (orders) => {
+      ordersGrid.innerHTML = '';
+      
+      const activeOrders = orders.filter(o => o.status !== 'entregue');
+
+      if (activeOrders.length === 0) {
+        ordersGrid.innerHTML = '<p style="color: #888;">Nenhum pedido pendente no momento.</p>';
+        return;
+      }
+
+      activeOrders.forEach(order => {
+        const card = document.createElement('div');
+        card.className = `card ${order.status}`;
+        
+        const itemsList = order.items.map(i => {
+          let details = '';
+          if (i.removedList && i.removedList.length > 0) {
+            details += `<br><small style="color: #ff6b6b;">Sem: ${i.removedList.join(', ')}</small>`;
+          }
+          if (i.extras && i.extras.length > 0) {
+            details += `<br><small style="color: #ff8c00;">+ ${i.extras.map(e => e.name).join(', ')}</small>`;
+          }
+          return `<li><strong>${i.qty}x</strong> ${i.name}${details}</li>`;
+        }).join('');
+
+        card.innerHTML = `
+          <div>
+            <h3>${order.customerName}</h3>
+            <p>Status: <strong>${order.status.toUpperCase()}</strong></p>
+            <ul>${itemsList}</ul>
+          </div>
+          <button class="btn-announce" onclick="announceOrder('${order.id}')">
+            📢 ANUNCIAR PEDIDO PRONTO
+          </button>
+        `;
+        ordersGrid.appendChild(card);
+      });
+    });
+
+    function announceOrder(id) {
+      socket.emit('update_order_status', { id: id, status: 'pronto' });
+    }
+  </script>
+</body>
+</html>

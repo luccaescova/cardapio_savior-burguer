@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
@@ -7,10 +9,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// NÚMERO DE DESTINO (DDI + DDD + Número)
-const DESTINATION_NUMBER = '5519999999999@c.us';
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*' }
+});
 
-// Cliente do WhatsApp com argumentos do Puppeteer para evitar erros de conexão
+const DESTINATION_NUMBER = '5519999999999@c.us';
+const AUTO_REMOVE_DELAY = 30000; // 30 segundos na tela de prontos
+
 const whatsappClient = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
@@ -33,26 +39,23 @@ whatsappClient.on('qr', (qr) => {
 });
 
 whatsappClient.on('ready', () => {
-  console.log('✅ WhatsApp conectado e pronto para enviar comandas!');
+  console.log('✅ WhatsApp conectado!');
 });
 
-whatsappClient.on('auth_failure', (msg) => {
-  console.error('❌ Falha na autenticação do WhatsApp:', msg);
-});
-
-whatsappClient.on('disconnected', (reason) => {
-  console.log('⚠️ WhatsApp desconectado:', reason);
+whatsappClient.on('disconnected', () => {
   whatsappClient.initialize();
 });
 
 whatsappClient.initialize();
 
-// Formatação da comanda para mensagem de texto no WhatsApp
+let activeOrders = [];
+
 function formatOrderMessage(orderData) {
-  const { items, total } = orderData;
+  const { customerName, items, total } = orderData;
   const dateStr = new Date().toLocaleString('pt-BR');
 
   let message = `*🍔 SAVIOR BURGUER - NOVA COMANDA 🍔*\n`;
+  message += `*Cliente:* ${customerName}\n`;
   message += `_Data: ${dateStr}_\n`;
   message += `------------------------------------\n\n`;
 
@@ -80,28 +83,59 @@ function formatOrderMessage(orderData) {
   return message;
 }
 
-// Rota POST do pedido
+io.on('connection', (socket) => {
+  socket.emit('orders_update', activeOrders);
+
+  socket.on('update_order_status', ({ id, status }) => {
+    const order = activeOrders.find(o => o.id === id);
+    if (order) {
+      order.status = status;
+      io.emit('orders_update', activeOrders);
+      
+      if (status === 'pronto') {
+        io.emit('announce_order', order);
+
+        setTimeout(() => {
+          activeOrders = activeOrders.filter(o => o.id !== id);
+          io.emit('orders_update', activeOrders);
+        }, AUTO_REMOVE_DELAY);
+      }
+    }
+  });
+});
+
 app.post('/api/order', async (req, res) => {
   try {
-    const { items, total } = req.body;
+    const { customerName, items, total } = req.body;
 
-    if (!items || items.length === 0) {
-      return res.status(400).json({ error: 'Carrinho vazio' });
+    if (!customerName || !items || items.length === 0) {
+      return res.status(400).json({ error: 'Dados do pedido inválidos' });
     }
 
-    const messageText = formatOrderMessage({ items, total });
+    const newOrder = {
+      id: Date.now().toString(), // ID interno apenas para controle do sistema
+      customerName,
+      items,
+      total,
+      status: 'preparando',
+      createdAt: new Date()
+    };
 
+    activeOrders.push(newOrder);
+    io.emit('orders_update', activeOrders);
+
+    const messageText = formatOrderMessage(newOrder);
     await whatsappClient.sendMessage(DESTINATION_NUMBER, messageText);
 
-    console.log('Comanda enviada para o WhatsApp com sucesso!');
-    res.status(200).json({ success: true, message: 'Pedido enviado com sucesso!' });
+    res.status(200).json({ success: true, customerName: newOrder.customerName });
+
   } catch (error) {
-    console.error('Erro ao enviar mensagem pelo WhatsApp:', error);
+    console.error('Erro ao processar pedido:', error);
     res.status(500).json({ error: 'Erro ao processar o envio do pedido' });
   }
 });
 
 const PORT = 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
