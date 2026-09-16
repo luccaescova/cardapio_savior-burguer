@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Savior Burguer — Cardápio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Botão Flutuante do Carrinho -->
+  <button id="cartFloatingBtn" class="cart-floating-btn" aria-label="Ver Carrinho">
+    🛒 Carrinho (<span id="cartCount">0</span>)
+  </button>
+
+  <!-- Modal de Seleção, Customização e Quantidade -->
+  <div id="quantityModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalProductName">Nome do Produto</h3>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Seção para Remover Ingredientes (Sem pão/carne) -->
+        <div id="removeIngredientsSection" class="extras-section" style="display: none;">
+          <h4>Retirar ingredientes?</h4>
+          <div id="removeIngredientsContainer" class="extras-container"></div>
+        </div>
+
+        <!-- Seção Exclusiva para Troca de Proteína (Supreme) -->
+        <div id="meatOptionSection" class="extras-section" style="display: none;">
+          <h4>Opção de Hambúrguer</h4>
+          <label class="extra-option">
+            <span>
+              <input type="checkbox" id="swapMeatCheckbox" />
+              <span class="custom-checkbox"></span>
+              Substituir Frango por Carne
+            </span>
+            <span class="price">+R$ 10,00</span>
+          </label>
+        </div>
+
+        <!-- Seção Dinâmica de Adicionais -->
+        <div id="extrasSection" class="extras-section" style="display: none;">
+          <h4>Deseja adicionar algum adicional?</h4>
+          <div id="extrasContainer" class="extras-container"></div>
+        </div>
+
+        <!-- Seção de Quantidade -->
+        <div class="qty-section">
+          <label for="productQty">Quantidade:</label>
+          <div class="qty-input-group">
+            <button type="button" id="btnMinus" class="btn-qty-modal">−</button>
+            <input type="number" id="productQty" value="1" min="1" max="99" readonly />
+            <button type="button" id="btnPlus" class="btn-qty-modal">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btnCancelQty" class="btn-cancel">Cancelar</button>
+        <button type="button" id="btnConfirmQty" class="btn-confirm">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal do Carrinho -->
+  <div id="cartModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Seu Carrinho</h3>
+        <button type="button" id="closeCartModal" class="close-btn">&times;</button>
+      </div>
+
+      <div id="cartEmpty" class="cart-empty">
+        Seu carrinho está vazio.
+      </div>
+
+      <div id="orderItems" class="order-items"></div>
+
+      <div class="total-container">
+        <span>Total:</span>
+        <span id="total">R$ 0,00</span>
+      </div>
+
+      <div class="cart-footer" style="margin-top: 16px;">
+        <button type="button" id="btnCheckout" class="btn-confirm" style="width: 100%;">Finalizar Pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Pedido Enviado (Confirmação) -->
+  <div id="orderSuccessModal" class="modal" aria-hidden="true">
+    <div class="modal-content" style="text-align: center; padding: 24px;">
+      <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
+      <h3 style="color: #ff8c00; font-size: 1.8rem; margin-bottom: 8px;">PEDIDO ENVIADO!</h3>
+      <p style="font-size: 1rem; color: #ddd; margin-bottom: 20px;">
+        Seu pedido foi recebido com sucesso e já está sendo preparado pela nossa equipe.
+      </p>
+      
+      <div id="orderSuccessDetails" style="background: #2a2a2a; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; color: #bbb;">
+        <!-- Resumo rápido inserido via JS -->
+      </div>
+
+      <button type="button" id="btnCloseSuccessModal" class="btn-confirm" style="width: 100%;">
+        Entendido / Voltar ao Cardápio
+      </button>
+    </div>
+  </div>
+
+  <!-- Cardápio Principal -->
+  <main class="poster" aria-label="Cardápio Savior Burguer">
+    <header class="header">
+      <img class="logo" src="assets/logo.png" alt="Savior Burguer" />
+      <div class="category-pill">BURGERS</div>
+      <div class="subtitle">hamburguer 100% artesanal</div>
+    </header>
+
+    <section class="burgers" id="burgers">
+      <article class="burger" data-name="Texas" data-price="45">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>TEXAS</h2>
+            <strong>R$ 45,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, CEBOLA ROXA, ALFACE, RÚCULA, HAMBÚRGUER 210G, QUEIJO CHEDDAR, QUEIJO MUSSARELA, QUEIJO CANASTRA, BACON E MOLHO BARBECUE.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img2.jpg" alt="Texas" />
+      </article>
+
+      <article class="burger" data-name="Classic" data-price="40">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>CLASSIC</h2>
+            <strong>R$ 40,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, CEBOLA ROXA, ALFACE AMERICANA, HAMBÚRGUER 210G, QUEIJO CHEDDAR E BACON.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img3.jpg" alt="Classic" />
+      </article>
+
+      <article class="burger" data-name="Vegano" data-price="40">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>VEGANO</h2>
+            <strong>R$ 40,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, CEBOLA ROXA, ALFACE AMERICANA, TOMATE E HAMBÚRGUER VEGETARIANO 210G.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img4.jpg" alt="Vegano" />
+      </article>
+
+      <article class="burger" data-name="Ruby" data-price="35">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>RUBY</h2>
+            <strong>R$ 35,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, HAMBÚRGUER 210G E QUEIJO CHEDDAR.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img5.jpg" alt="Ruby" />
+      </article>
+
+      <article class="burger" data-name="Caribe" data-price="43">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>CARIBE</h2>
+            <strong>R$ 43,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, HAMBÚRGUER 210G, QUEIJO CANASTRA, CEBOLA CARAMELIZADA E BACON.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img6.jpg" alt="Caribe" />
+      </article>
+
+      <article class="burger" data-name="Verona" data-price="43">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>VERONA</h2>
+            <strong>R$ 43,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, CEBOLA ROXA, RÚCULA, HAMBÚRGUER 210G, QUEIJO BRIE, BACON E MEL.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img7.jpg" alt="Verona" />
+      </article>
+
+      <article class="burger" data-name="Supreme" data-price="38">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>SUPREME</h2>
+            <strong>R$ 38,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, CEBOLA ROXA, ALFACE, TOMATE, HAMBÚRGUER DE FRANGO FRITO, CATUPIRY E CEBOLA CRISPY.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+          <em>OBS: TROQUE O FRANGO POR CARNE POR +R$ 10,00</em>
+        </div>
+        <img src="assets/img8.jpg" alt="Supreme" />
+      </article>
+
+      <article class="burger" data-name="Viena" data-price="43">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>VIENA</h2>
+            <strong>R$ 43,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, CEBOLA ROXA, RÚCULA, TOMATE, PICLES, HAMBÚRGUER 210G E BACON.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img9.jpg" alt="Viena" />
+      </article>
+
+      <article class="burger" data-name="Gold" data-price="55">
+        <div class="burger-copy">
+          <div class="burger-heading">
+            <h2>GOLD</h2>
+            <strong>R$ 55,00</strong>
+          </div>
+          <p>PÃO DE BRIOCHE, MAIONESE, CEBOLA ROXA, ALFACE AMERICANA, DUPLO HAMBÚRGUER DE 210G, QUEIJO CHEDDAR E BACON.</p>
+          <small>(ACOMPANHA 100G DE BATATA FRITA)</small>
+        </div>
+        <img src="assets/img10.jpg" alt="Gold" />
+      </article>
+    </section>
+
+    <section class="drinks">
+      <h1>BEBIDAS</h1>
+      <div class="drink-list">
+        <button class="drink menu-item" data-name="Refrigerante lata" data-price="7"><span>REFRIGERANTE LATA</span><b>R$ 7,00</b><small>REFRIGERANTE 290ML</small></button>
+        <button class="drink menu-item" data-name="Suco lata" data-price="7"><span>SUCO LATA</span><b>R$ 7,00</b><small>SUCO 290ML</small></button>
+        <button class="drink menu-item" data-name="H20H" data-price="8"><span>H20H</span><b>R$ 8,00</b><small>GARRAFA 500ML</small></button>
+        <button class="drink menu-item" data-name="Água c/ gás" data-price="4"><span>ÁGUA C/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
+        <button class="drink menu-item" data-name="Água s/ gás" data-price="4"><span>ÁGUA S/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

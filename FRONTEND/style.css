@@ -1,0 +1,687 @@
+/* Reset básico e configurações gerais */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #1a0a03;
+  color: #ffffff;
+  font-family: 'Barlow Condensed', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Container principal (Cartaz / Poster) */
+.poster {
+  width: 100%;
+  max-width: 650px;
+  background-color: #260c03;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.vertical-title {
+  display: none; /* Oculto por padrão para layout limpo */
+}
+
+/* Cabeçalho */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.header .logo {
+  max-width: 180px;
+  height: auto;
+}
+
+.order-btn {
+  background-color: #00c853;
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 20px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background-color 0.2s;
+}
+
+.order-btn:hover {
+  background-color: #00e676;
+}
+
+.category-pill {
+  background-color: #d85a00;
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 900;
+  padding: 4px 24px;
+  border-radius: 12px;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #e0e0e0;
+}
+
+/* Seção de Hambúrgueres */
+.burgers {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.burger {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.burger-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.burger-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.burger-heading h2 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #fca311;
+  margin: 0;
+  line-height: 1;
+}
+
+.burger-heading strong {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fca311;
+  white-space: nowrap;
+}
+
+.burger-copy p {
+  font-size: 0.95rem;
+  line-height: 1.25;
+  color: #e0e0e0;
+  margin: 0;
+  font-weight: 600;
+}
+
+.burger-copy small,
+.burger-copy em {
+  display: block;
+  font-size: 0.8rem;
+  color: #aaaaaa;
+  margin-top: 4px;
+}
+
+.burger img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Adicionais */
+.extras {
+  margin-top: 32px;
+}
+
+.extras-title, .drinks h1 {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #fca311;
+  border-bottom: 2px solid #fca311;
+  padding-bottom: 4px;
+  margin-bottom: 16px;
+}
+
+.extras-list, .drink-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.menu-item {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-item span {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.menu-item b {
+  color: #fca311;
+  font-size: 1.1rem;
+}
+
+.menu-item small {
+  color: #aaa;
+  font-size: 0.75rem;
+}
+
+/* Bebidas */
+.drinks {
+  margin-top: 32px;
+}
+
+/* Modal do Carrinho */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-card {
+  background-color: #260c03;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  position: relative;
+  color: #fff;
+}
+
+.modal-card .close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.finish {
+  width: 100%;
+  background-color: #00c853;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+/* Estilização das linhas dentro do Modal */
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 8px;
+}
+
+.order-row .name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.order-row .price {
+  color: #fca311;
+  font-weight: 800;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-controls button {
+  background-color: #d85a00;
+  color: #fff;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.qty-controls button:hover {
+  background-color: #fca311;
+}
+
+.cart-empty {
+  text-align: center;
+  padding: 16px 0;
+  color: #aaa;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-top: 16px;
+  border-top: 2px solid #fca311;
+  padding-top: 8px;
+}
+
+/* Botão Flutuante do Carrinho */
+.cart-floating-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #d85a00;
+  color: #fff;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.cart-floating-btn:hover {
+  background-color: #fca311;
+  transform: scale(1.05);
+}
+
+/* Modal Overlay */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.modal.active {
+  display: flex;
+}
+
+/* Conteúdo do Modal */
+.modal-content {
+  background-color: #1a1a1a;
+  color: #fff;
+  width: 100%;
+  max-width: 480px;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Lista de Itens no Carrinho */
+.order-items {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 8px;
+}
+
+.order-row .name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.order-row .price {
+  color: #fca311;
+  font-weight: 700;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty-controls button {
+  background-color: #d85a00;
+  color: #fff;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-controls button:hover {
+  background-color: #fca311;
+}
+
+.cart-empty {
+  text-align: center;
+  padding: 20px 0;
+  color: #aaa;
+}
+
+.total-container {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-top: 8px;
+  border-top: 2px solid #fca311;
+  padding-top: 12px;
+}
+
+.finish-btn {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.finish-btn:hover {
+  background-color: #218838;
+}
+
+/* Modal de Seleção de Quantidade */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background-color: #1a1a1a;
+  color: #fff;
+  width: 100%;
+  max-width: 360px;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+}
+
+.qty-input-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.qty-input-group input {
+  width: 60px;
+  height: 40px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.btn-qty-modal {
+  background-color: #d85a00;
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-qty-modal:hover {
+  background-color: #fca311;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-confirm {
+  flex: 1;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn-confirm:hover {
+  background-color: #218838;
+}
+
+.btn-cancel {
+  flex: 1;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn-cancel:hover {
+  background-color: #c82333;
+}
+
+.extras-section {
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.extras-section h4 {
+  text-align: center;
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  color: #fca311;
+}
+
+.extras-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+/* Container de cada opção de adicional */
+.extra-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2a2a2a;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.extra-option:hover {
+  background: #333333;
+  border-color: rgba(252, 163, 17, 0.3);
+}
+
+.extra-option span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 1. Oculta o checkbox nativo */
+.extra-option input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* 2. Cria o checkbox estilizado customizado */
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  background-color: #1a1a1a;
+  border: 2px solid #555;
+  border-radius: 5px;
+  display: inline-block;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* Efeito ao passar o mouse por cima */
+.extra-option:hover .custom-checkbox {
+  border-color: #fca311;
+}
+
+/* Estado do checkbox quando MARCADO (Checked) */
+.extra-option input[type="checkbox"]:checked ~ .custom-checkbox {
+  background-color: #d85a00;
+  border-color: #fca311;
+  box-shadow: 0 0 8px rgba(216, 90, 0, 0.5);
+}
+
+/* 3. Ícone de Check (✓) desenhado via CSS */
+.custom-checkbox::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Exibe o check quando marcado */
+.extra-option input[type="checkbox"]:checked ~ .custom-checkbox::after {
+  display: block;
+}
+
+.qty-section {
+  margin-top: 8px;
+}
