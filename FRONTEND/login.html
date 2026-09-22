@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Savior Burguer - Autenticação</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #121212; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .auth-box { background: #1e1e1e; padding: 30px; border-radius: 8px; border: 1px solid #333; width: 100%; max-width: 380px; }
+    h2 { color: #ff8c00; margin-bottom: 20px; text-align: center; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: #fff; }
+    button { width: 100%; padding: 12px; background: #ff8c00; border: none; border-radius: 5px; color: #000; font-weight: bold; cursor: pointer; }
+    .toggle { text-align: center; margin-top: 15px; font-size: 0.85rem; color: #aaa; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="auth-box">
+    <h2 id="title">Login</h2>
+    <form id="authForm">
+      <input type="text" id="nameInput" placeholder="Nome Completo" style="display:none;" />
+      <input type="email" id="emailInput" placeholder="E-mail" required />
+      <input type="password" id="passwordInput" placeholder="Senha" required />
+      <select id="roleSelect" style="display:none;">
+        <option value="user">Usuário / Cliente</option>
+        <option value="admin">Administrador</option>
+      </select>
+      <button type="submit" id="btnSubmit">Entrar</button>
+    </form>
+    <div class="toggle" id="toggleAuth">Não tem uma conta? Cadastre-se</div>
+  </div>
+
+  <script>
+    let isLogin = true;
+
+    const title = document.getElementById('title');
+    const authForm = document.getElementById('authForm');
+    const nameInput = document.getElementById('nameInput');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const roleSelect = document.getElementById('roleSelect');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const toggleAuth = document.getElementById('toggleAuth');
+
+    toggleAuth.addEventListener('click', () => {
+      isLogin = !isLogin;
+      title.textContent = isLogin ? 'Login' : 'Cadastro';
+      btnSubmit.textContent = isLogin ? 'Entrar' : 'Cadastrar';
+      toggleAuth.textContent = isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre';
+      nameInput.style.display = isLogin ? 'none' : 'block';
+      roleSelect.style.display = isLogin ? 'none' : 'block';
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const payload = {
+        email: emailInput.value,
+        password: passwordInput.value,
+        ...( !isLogin && { name: nameInput.value, role: roleSelect.value })
+      };
+
+      try {
+        const res = await fetch(`http://localhost:3000${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error);
+
+        if (isLogin) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('userName', data.name);
+          window.location.href = data.role === 'admin' ? 'admin.html' : 'index.html';
+        } else {
+          alert('Cadastro realizado com sucesso! Faça login.');
+          toggleAuth.click();
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -2,76 +2,164 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Savior Burguer - Painel do Atendente</title>
+  <title>Savior Burguer - Painel Admin</title>
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #121212; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-    h1 { color: #ff8c00; margin-bottom: 20px; font-size: 2rem; text-transform: uppercase; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #222; padding-bottom: 15px; }
+    h1 { color: #ff8c00; font-size: 1.8rem; }
+    .whatsapp-control { display: flex; align-items: center; gap: 12px; }
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; }
+    .status-badge.disconnected { background-color: #3a1c1c; color: #ff6b6b; border: 1px solid #ff6b6b; }
+    .status-badge.connecting { background-color: #3a321c; color: #ffd166; border: 1px solid #ffd166; }
+    .status-badge.ready { background-color: #1c3a2b; color: #00f5d4; border: 1px solid #00f5d4; }
+    .btn-connect { background-color: #25D366; color: #000; font-weight: bold; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+    .admin-sections { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+    .add-product-box { background: #1e1e1e; padding: 20px; border-radius: 8px; border: 1px solid #333; height: fit-content; }
+    .add-product-box h2 { color: #00f5d4; font-size: 1.2rem; margin-bottom: 15px; }
+    input, select, textarea { width: 100%; padding: 8px; margin-bottom: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px; }
+    .btn-add { background: #00f5d4; color: #000; font-weight: bold; border: none; padding: 10px; width: 100%; border-radius: 4px; cursor: pointer; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-    .card { background: #1e1e1e; border: 2px solid #333; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; justify: space-between; }
-    .card.pronto { border-color: #00f5d4; background-color: #1a2e2b; }
-    .card h3 { color: #ff8c00; font-size: 1.4rem; margin-bottom: 8px; word-break: break-word; }
-    .card.pronto h3 { color: #00f5d4; }
-    .card p { margin-bottom: 8px; font-size: 0.95rem; }
-    .card ul { list-style: none; margin-bottom: 15px; padding-left: 0; }
-    .card ul li { font-size: 0.9rem; color: #ccc; margin-bottom: 4px; border-bottom: 1px dashed #333; padding-bottom: 2px; }
-    .btn-announce { background: #ff8c00; color: #000; font-weight: bold; border: none; padding: 12px; border-radius: 5px; width: 100%; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
-    .btn-announce:hover { background: #e07b00; }
-    .card.pronto .btn-announce { background: #00f5d4; color: #000; }
-    .card.pronto .btn-announce:hover { background: #00c2a8; }
+    .card { background: #1e1e1e; border: 2px solid #333; border-radius: 8px; padding: 15px; }
+    .card.pronto { border-color: #00f5d4; }
+    .btn-announce { background: #ff8c00; border: none; padding: 10px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    .qr-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; visibility: hidden; opacity: 0; transition: opacity 0.3s; }
+    .qr-modal.active { visibility: visible; opacity: 1; }
+    .qr-box { background: #1e1e1e; padding: 30px; border-radius: 12px; border: 2px solid #25D366; text-align: center; max-width: 360px; }
+    .qr-box img { width: 250px; height: 250px; background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
   </style>
 </head>
 <body>
-  <h1>Painel do Atendente - Savior Burguer</h1>
-  <div id="ordersGrid" class="grid"></div>
+
+  <div class="header-bar">
+    <h1>Painel do Admin</h1>
+    <div class="whatsapp-control">
+      <span id="waStatus" class="status-badge disconnected">Desconectado</span>
+      <button id="btnConnectWA" class="btn-connect">📱 Conectar WhatsApp</button>
+      <button onclick="logout()" style="background:#ff4d4d; color:#fff; border:none; padding:8px 15px; border-radius:4px; cursor:pointer;">Sair</button>
+    </div>
+  </div>
+
+  <div class="admin-sections">
+    <div class="add-product-box">
+      <h2>+ Adicionar Novo Produto</h2>
+      <form id="addProductForm">
+        <input type="text" id="prodName" placeholder="Nome do Produto" required />
+        <input type="number" step="0.01" id="prodPrice" placeholder="Preço (Ex: 25.00)" required />
+        <select id="prodCategory">
+          <option value="lanche">Lanche</option>
+          <option value="bebida">Bebida</option>
+        </select>
+        <textarea id="prodDesc" placeholder="Descrição dos ingredientes"></textarea>
+        <input type="text" id="prodImg" placeholder="URL da Imagem" />
+        <button type="submit" class="btn-add">Salvar no Cardápio</button>
+      </form>
+    </div>
+
+    <div>
+      <h2 style="margin-bottom: 15px; color: #ff8c00;">Pedidos em Andamento</h2>
+      <div id="ordersGrid" class="grid"></div>
+    </div>
+  </div>
+
+  <div id="qrModal" class="qr-modal">
+    <div class="qr-box">
+      <h2 style="color: #25D366; margin-bottom: 10px;">Escaneie o QR Code</h2>
+      <img id="qrImage" src="" alt="QR Code..." />
+      <button id="btnCloseQR" style="background:#333; color:#fff; border:none; padding:8px 16px; border-radius:5px; cursor:pointer;">Fechar</button>
+    </div>
+  </div>
 
   <script>
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token || role !== 'admin') {
+      alert('Acesso negado!');
+      window.location.href = 'login.html';
+    }
+
     const socket = io('http://localhost:3000');
     const ordersGrid = document.getElementById('ordersGrid');
+    const waStatus = document.getElementById('waStatus');
+    const btnConnectWA = document.getElementById('btnConnectWA');
+    const qrModal = document.getElementById('qrModal');
+    const qrImage = document.getElementById('qrImage');
+
+    btnConnectWA.addEventListener('click', () => socket.emit('start_whatsapp'));
+    document.getElementById('btnCloseQR').addEventListener('click', () => qrModal.classList.remove('active'));
+
+    socket.on('whatsapp_status', ({ status }) => {
+      waStatus.className = 'status-badge ' + status.toLowerCase();
+      if (status === 'DISCONNECTED') {
+        waStatus.textContent = 'Desconectado';
+        btnConnectWA.disabled = false;
+      } else if (status === 'CONNECTING') {
+        waStatus.textContent = 'Gerando QR...';
+        btnConnectWA.disabled = true;
+      } else if (status === 'READY') {
+        waStatus.textContent = 'Conectado';
+        btnConnectWA.disabled = true;
+        qrModal.classList.remove('active');
+      }
+    });
+
+    socket.on('whatsapp_qr', ({ qr }) => {
+      qrImage.src = qr;
+      qrModal.classList.add('active');
+    });
+
+    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('prodName').value,
+        price: parseFloat(document.getElementById('prodPrice').value),
+        category: document.getElementById('prodCategory').value,
+        description: document.getElementById('prodDesc').value,
+        image: document.getElementById('prodImg').value
+      };
+
+      try {
+        const res = await fetch('http://localhost:3000/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert('Produto cadastrado com sucesso!');
+          document.getElementById('addProductForm').reset();
+        } else {
+          alert('Erro ao cadastrar produto.');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
 
     socket.on('orders_update', (orders) => {
       ordersGrid.innerHTML = '';
-      
-      const activeOrders = orders.filter(o => o.status !== 'entregue');
-
-      if (activeOrders.length === 0) {
-        ordersGrid.innerHTML = '<p style="color: #888;">Nenhum pedido pendente no momento.</p>';
-        return;
-      }
-
-      activeOrders.forEach(order => {
+      orders.filter(o => o.status !== 'entregue').forEach(order => {
         const card = document.createElement('div');
         card.className = `card ${order.status}`;
-        
-        const itemsList = order.items.map(i => {
-          let details = '';
-          if (i.removedList && i.removedList.length > 0) {
-            details += `<br><small style="color: #ff6b6b;">Sem: ${i.removedList.join(', ')}</small>`;
-          }
-          if (i.extras && i.extras.length > 0) {
-            details += `<br><small style="color: #ff8c00;">+ ${i.extras.map(e => e.name).join(', ')}</small>`;
-          }
-          return `<li><strong>${i.qty}x</strong> ${i.name}${details}</li>`;
-        }).join('');
-
         card.innerHTML = `
-          <div>
-            <h3>${order.customerName}</h3>
-            <p>Status: <strong>${order.status.toUpperCase()}</strong></p>
-            <ul>${itemsList}</ul>
-          </div>
-          <button class="btn-announce" onclick="announceOrder('${order.id}')">
-            📢 ANUNCIAR PEDIDO PRONTO
-          </button>
+          <h3>${order.customerName}</h3>
+          <p>Status: <strong>${order.status.toUpperCase()}</strong></p>
+          <ul>${order.items.map(i => `<li>${i.qty}x${i.name}</li>`).join('')}</ul>
+          <button class="btn-announce" onclick="announceOrder('${order.id}')">📢 ANUNCIAR PRONTO</button>
         `;
         ordersGrid.appendChild(card);
       });
     });
 
     function announceOrder(id) {
-      socket.emit('update_order_status', { id: id, status: 'pronto' });
+      socket.emit('update_order_status', { id, status: 'pronto' });
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
     }
   </script>
 </body>
