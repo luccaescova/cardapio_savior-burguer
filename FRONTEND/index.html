@@ -24,7 +24,7 @@
       </div>
       
       <div class="modal-body">
-        <!-- Seção para Remover Ingredientes (Sem pão/carne) -->
+        <!-- Seção para Remover Ingredientes -->
         <div id="removeIngredientsSection" class="extras-section" style="display: none;">
           <h4>Retirar ingredientes?</h4>
           <div id="removeIngredientsContainer" class="extras-container"></div>
@@ -75,11 +75,10 @@
         <button type="button" id="closeCartModal" class="close-btn">&times;</button>
       </div>
 
-      <!-- Dentro do cartModal no index.html -->
-    <div style="margin-top: 15px;">
-      <label style="color: #fff; font-size: 0.9rem;">Seu Nome para Chamada:</label>
-      <input type="text" id="customerNameInput" placeholder="Ex: Lucas" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #222; color: #fff; margin-top: 5px;" required />
-    </div>
+      <div style="margin-top: 15px;">
+        <label style="color: #fff; font-size: 0.9rem;">Seu Nome para Chamada:</label>
+        <input type="text" id="customerNameInput" placeholder="Ex: Lucas" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #222; color: #fff; margin-top: 5px;" required />
+      </div>
 
       <div id="cartEmpty" class="cart-empty">
         Seu carrinho está vazio.
@@ -104,12 +103,8 @@
       <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
       <h3 style="color: #ff8c00; font-size: 1.8rem; margin-bottom: 8px;">PEDIDO ENVIADO!</h3>
       <p style="font-size: 1rem; color: #ddd; margin-bottom: 20px;">
-        Seu pedido foi recebido com sucesso e já está sendo preparado pela nossa equipe.
+        Seu pedido foi recebido com sucesso e a comanda foi enviada para a impressora.
       </p>
-      
-      <div id="orderSuccessDetails" style="background: #2a2a2a; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; color: #bbb;">
-        <!-- Resumo rápido inserido via JS -->
-      </div>
 
       <button type="button" id="btnCloseSuccessModal" class="btn-confirm" style="width: 100%;">
         Entendido / Voltar ao Cardápio
@@ -126,7 +121,7 @@
     </header>
 
     <section class="burgers" id="burgers">
-      <article class="burger" data-name="Texas" data-price="45">
+      <article class="burger" onclick="openQuantityModal('Texas', 45)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>TEXAS</h2>
@@ -138,7 +133,7 @@
         <img src="assets/img2.jpg" alt="Texas" />
       </article>
 
-      <article class="burger" data-name="Classic" data-price="40">
+      <article class="burger" onclick="openQuantityModal('Classic', 40)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>CLASSIC</h2>
@@ -150,7 +145,7 @@
         <img src="assets/img3.jpg" alt="Classic" />
       </article>
 
-      <article class="burger" data-name="Vegano" data-price="40">
+      <article class="burger" onclick="openQuantityModal('Vegano', 40)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>VEGANO</h2>
@@ -162,7 +157,7 @@
         <img src="assets/img4.jpg" alt="Vegano" />
       </article>
 
-      <article class="burger" data-name="Ruby" data-price="35">
+      <article class="burger" onclick="openQuantityModal('Ruby', 35)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>RUBY</h2>
@@ -174,7 +169,7 @@
         <img src="assets/img5.jpg" alt="Ruby" />
       </article>
 
-      <article class="burger" data-name="Caribe" data-price="43">
+      <article class="burger" onclick="openQuantityModal('Caribe', 43)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>CARIBE</h2>
@@ -186,7 +181,7 @@
         <img src="assets/img6.jpg" alt="Caribe" />
       </article>
 
-      <article class="burger" data-name="Verona" data-price="43">
+      <article class="burger" onclick="openQuantityModal('Verona', 43)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>VERONA</h2>
@@ -198,7 +193,7 @@
         <img src="assets/img7.jpg" alt="Verona" />
       </article>
 
-      <article class="burger" data-name="Supreme" data-price="38">
+      <article class="burger" onclick="openQuantityModal('Supreme', 38)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>SUPREME</h2>
@@ -211,7 +206,7 @@
         <img src="assets/img8.jpg" alt="Supreme" />
       </article>
 
-      <article class="burger" data-name="Viena" data-price="43">
+      <article class="burger" onclick="openQuantityModal('Viena', 43)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>VIENA</h2>
@@ -223,7 +218,7 @@
         <img src="assets/img9.jpg" alt="Viena" />
       </article>
 
-      <article class="burger" data-name="Gold" data-price="55">
+      <article class="burger" onclick="openQuantityModal('Gold', 55)">
         <div class="burger-copy">
           <div class="burger-heading">
             <h2>GOLD</h2>
@@ -239,11 +234,11 @@
     <section class="drinks">
       <h1>BEBIDAS</h1>
       <div class="drink-list">
-        <button class="drink menu-item" data-name="Refrigerante lata" data-price="7"><span>REFRIGERANTE LATA</span><b>R$ 7,00</b><small>REFRIGERANTE 290ML</small></button>
-        <button class="drink menu-item" data-name="Suco lata" data-price="7"><span>SUCO LATA</span><b>R$ 7,00</b><small>SUCO 290ML</small></button>
-        <button class="drink menu-item" data-name="H20H" data-price="8"><span>H20H</span><b>R$ 8,00</b><small>GARRAFA 500ML</small></button>
-        <button class="drink menu-item" data-name="Água c/ gás" data-price="4"><span>ÁGUA C/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
-        <button class="drink menu-item" data-name="Água s/ gás" data-price="4"><span>ÁGUA S/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
+        <button class="drink menu-item" onclick="openQuantityModal('Refrigerante lata', 7, true)"><span>REFRIGERANTE LATA</span><b>R$ 7,00</b><small>REFRIGERANTE 290ML</small></button>
+        <button class="drink menu-item" onclick="openQuantityModal('Suco lata', 7, true)"><span>SUCO LATA</span><b>R$ 7,00</b><small>SUCO 290ML</small></button>
+        <button class="drink menu-item" onclick="openQuantityModal('H20H', 8, true)"><span>H20H</span><b>R$ 8,00</b><small>GARRAFA 500ML</small></button>
+        <button class="drink menu-item" onclick="openQuantityModal('Água c/ gás', 4, true)"><span>ÁGUA C/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
+        <button class="drink menu-item" onclick="openQuantityModal('Água s/ gás', 4, true)"><span>ÁGUA S/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
       </div>
     </section>
   </main>

@@ -1,280 +1,282 @@
-const API_URL = 'http://localhost:3000';
+let cart = [];
+let selectedProduct = null;
 
-const AVAILABLE_EXTRAS = [
-  { name: 'Bacon', price: 4.00 },
-  { name: 'Alface', price: 2.00 },
-  { name: 'Tomate', price: 2.00 },
-  { name: 'Hambúrguer 210g', price: 15.00 },
-  { name: 'Catupiry', price: 4.00 }
-];
-
-const DEFAULT_BURGER_INGREDIENTS = [
-  'Maionese', 'Cebola Roxa', 'Alface', 'Rúcula', 'Queijo Cheddar', 
-  'Queijo Mussarela', 'Queijo Canastra', 'Bacon', 'Molho Barbecue', 'Tomate'
-];
-
-const DRINK_OPTIONS = {
-  'Refrigerante lata': ['Coca-Cola Normal', 'Coca-Cola Zero', 'Guaraná Normal', 'Guaraná Zero'],
-  'Suco lata': ['Uva', 'Laranja']
+const removableIngredients = {
+  Texas: ['Cebola Roxa', 'Alface', 'Rúcula', 'Bacon', 'Molho Barbecue'],
+  Classic: ['Cebola Roxa', 'Alface Americana', 'Bacon'],
+  Vegano: ['Cebola Roxa', 'Alface Americana', 'Tomate'],
+  Ruby: ['Cheddar'],
+  Caribe: ['Cebola Caramelizada', 'Bacon'],
+  Verona: ['Cebola Roxa', 'Rúcula', 'Bacon', 'Mel'],
+  Supreme: ['Cebola Roxa', 'Alface', 'Tomate', 'Catupiry', 'Cebola Crispy'],
+  Viena: ['Cebola Roxa', 'Rúcula', 'Tomate', 'Picles', 'Bacon'],
+  Gold: ['Cebola Roxa', 'Alface Americana', 'Bacon']
 };
 
-const cart = [];
-let selectedProduct = null;
+const availableExtras = [
+  { name: 'Hambúrguer 210g extra', price: 12.00 },
+  { name: 'Bacon extra', price: 6.00 },
+  { name: 'Queijo Cheddar extra', price: 5.00 },
+  { name: 'Maionese da casa extra', price: 4.00 }
+];
 
 const qtyModal = document.getElementById('quantityModal');
 const modalProductName = document.getElementById('modalProductName');
 const productQtyInput = document.getElementById('productQty');
-const extrasSection = document.getElementById('extrasSection');
-const extrasContainer = document.getElementById('extrasContainer');
 const removeIngredientsSection = document.getElementById('removeIngredientsSection');
 const removeIngredientsContainer = document.getElementById('removeIngredientsContainer');
-const btnConfirmQty = document.getElementById('btnConfirmQty');
-const btnCancelQty = document.getElementById('btnCancelQty');
-const btnPlus = document.getElementById('btnPlus');
-const btnMinus = document.getElementById('btnMinus');
+const meatOptionSection = document.getElementById('meatOptionSection');
+const swapMeatCheckbox = document.getElementById('swapMeatCheckbox');
+const extrasSection = document.getElementById('extrasSection');
+const extrasContainer = document.getElementById('extrasContainer');
 
-const cartFloatingBtn = document.getElementById('cartFloatingBtn');
 const cartModal = document.getElementById('cartModal');
-const closeCartModalBtn = document.getElementById('closeCartModal');
-const cartCountElement = document.getElementById('cartCount');
+const cartFloatingBtn = document.getElementById('cartFloatingBtn');
+const closeCartModal = document.getElementById('closeCartModal');
+const cartCount = document.getElementById('cartCount');
+const cartEmpty = document.getElementById('cartEmpty');
 const orderItems = document.getElementById('orderItems');
 const totalElement = document.getElementById('total');
-const cartEmptyElement = document.getElementById('cartEmpty');
-const btnCheckout = document.getElementById('btnCheckout');
+const customerNameInput = document.getElementById('customerNameInput');
 
-const orderSuccessModal = document.getElementById('orderSuccessModal');
-const orderSuccessDetails = document.getElementById('orderSuccessDetails');
-const btnCloseSuccessModal = document.getElementById('btnCloseSuccessModal');
-
-function formatCurrency(value) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-async function loadProductsFromDB() {
-  const menuContainer = document.getElementById('menuContainer');
-  if (!menuContainer) return;
-
-  const token = localStorage.getItem('token');
-  if (!token) {
-    window.location.href = 'login.html';
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/api/products`);
-    if (!res.ok) throw new Error('Erro ao buscar produtos');
-    
-    const products = await res.json();
-    menuContainer.innerHTML = '';
-
-    if (products.length === 0) {
-      menuContainer.innerHTML = '<p style="color:#aaa;">Nenhum produto cadastrado no momento.</p>';
-      return;
-    }
-
-    products.forEach(prod => {
-      const isDrink = prod.category === 'bebida';
-      const card = document.createElement('div');
-      card.className = `menu-item ${isDrink ? 'drink' : ''}`;
-      card.style.cursor = 'pointer';
-
-      card.innerHTML = `
-        <div class="item-info">
-          <h3>${prod.name}</h3>
-          <p class="description">${prod.description || ''}</p>
-          <span class="price">${formatCurrency(prod.price)}</span>
-        </div>
-        ${prod.image ? `<img src="${prod.image}" alt="${prod.name}" class="card-img" style="object-fit: cover; width:100px; height:100px; border-radius:8px;">` : ''}
-      `;
-
-      card.addEventListener('click', () => {
-        openQuantityModal(prod.name, prod.price, isDrink);
-      });
-
-      menuContainer.appendChild(card);
-    });
-  } catch (err) {
-    console.error('Falha ao carregar produtos:', err);
-  }
-}
-
-function openQuantityModal(name, price, isDrink = false) {
+window.openQuantityModal = function(name, price, isDrink = false) {
   selectedProduct = { name, price: Number(price), isDrink };
-  modalProductName.textContent = name;
-  productQtyInput.value = 1;
+
+  if (modalProductName) modalProductName.textContent = name;
+  if (productQtyInput) productQtyInput.value = 1;
 
   if (isDrink) {
-    extrasSection.style.display = 'none';
-    renderDrinkOptions(name);
+    if (removeIngredientsSection) removeIngredientsSection.style.display = 'none';
+    if (meatOptionSection) meatOptionSection.style.display = 'none';
+    if (extrasSection) extrasSection.style.display = 'none';
   } else {
-    renderRemoveIngredientsOptions();
+    renderRemoveIngredientsOptions(name);
+    renderMeatOption(name);
     renderExtrasOptions();
   }
 
-  qtyModal.classList.add('active');
-}
+  if (qtyModal) qtyModal.classList.add('active');
+};
 
-function closeQuantityModal() {
-  selectedProduct = null;
-  qtyModal.classList.remove('active');
-}
-
-function renderRemoveIngredientsOptions() {
+function renderRemoveIngredientsOptions(productName) {
+  if (!removeIngredientsContainer) return;
   removeIngredientsContainer.innerHTML = '';
-  DEFAULT_BURGER_INGREDIENTS.forEach((ingredient) => {
-    const label = document.createElement('label');
-    label.style.display = 'block';
-    label.innerHTML = `
-      <input type="checkbox" class="remove-ingredient-check" value="${ingredient}" />
-      Sem ${ingredient}
-    `;
-    removeIngredientsContainer.appendChild(label);
-  });
-  removeIngredientsSection.style.display = 'block';
-}
 
-function renderDrinkOptions(productName) {
-  removeIngredientsContainer.innerHTML = '';
-  const flavors = DRINK_OPTIONS[productName] || [];
-
-  if (flavors.length === 0) {
+  const ingredients = removableIngredients[productName] || [];
+  if (ingredients.length === 0) {
     removeIngredientsSection.style.display = 'none';
     return;
   }
 
-  flavors.forEach((flavor, index) => {
+  removeIngredientsSection.style.display = 'block';
+  ingredients.forEach(ing => {
     const label = document.createElement('label');
-    label.style.display = 'block';
+    label.className = 'extra-option';
     label.innerHTML = `
-      <input type="radio" name="drinkFlavor" value="${flavor}" ${index === 0 ? 'checked' : ''} />
-      ${flavor}
+      <span>
+        <input type="checkbox" class="remove-ing-checkbox" value="${ing}" />
+        <span class="custom-checkbox"></span>
+        Sem ${ing}
+      </span>
     `;
     removeIngredientsContainer.appendChild(label);
   });
-  removeIngredientsSection.style.display = 'block';
+}
+
+function renderMeatOption(productName) {
+  if (!meatOptionSection) return;
+  if (swapMeatCheckbox) swapMeatCheckbox.checked = false;
+
+  if (productName === 'Supreme') {
+    meatOptionSection.style.display = 'block';
+  } else {
+    meatOptionSection.style.display = 'none';
+  }
 }
 
 function renderExtrasOptions() {
+  if (!extrasContainer) return;
   extrasContainer.innerHTML = '';
-  AVAILABLE_EXTRAS.forEach((extra, idx) => {
+  extrasSection.style.display = 'block';
+
+  availableExtras.forEach(extra => {
     const label = document.createElement('label');
-    label.style.display = 'block';
+    label.className = 'extra-option';
     label.innerHTML = `
-      <input type="checkbox" data-index="${idx}" />
-      ${extra.name} (+${formatCurrency(extra.price)})
+      <span>
+        <input type="checkbox" class="extra-checkbox" data-name="${extra.name}" data-price="${extra.price}" />
+        <span class="custom-checkbox"></span>
+        ${extra.name}
+      </span>
+      <span class="price">+R$ ${extra.price.toFixed(2)}</span>
     `;
     extrasContainer.appendChild(label);
   });
-  extrasSection.style.display = 'block';
 }
 
-btnPlus.addEventListener('click', () => { productQtyInput.value = (parseInt(productQtyInput.value) || 1) + 1; });
-btnMinus.addEventListener('click', () => {
-  const current = parseInt(productQtyInput.value) || 1;
-  if (current > 1) productQtyInput.value = current - 1;
+document.getElementById('btnMinus')?.addEventListener('click', () => {
+  let val = parseInt(productQtyInput.value) || 1;
+  if (val > 1) productQtyInput.value = val - 1;
 });
-btnCancelQty.addEventListener('click', closeQuantityModal);
 
-btnConfirmQty.addEventListener('click', () => {
+document.getElementById('btnPlus')?.addEventListener('click', () => {
+  let val = parseInt(productQtyInput.value) || 1;
+  if (val < 99) productQtyInput.value = val + 1;
+});
+
+document.getElementById('btnCancelQty')?.addEventListener('click', () => {
+  if (qtyModal) qtyModal.classList.remove('active');
+});
+
+document.getElementById('btnConfirmQty')?.addEventListener('click', () => {
   if (!selectedProduct) return;
-  const qty = parseInt(productQtyInput.value) || 1;
 
-  let baseName = selectedProduct.name;
-  let unitPrice = selectedProduct.price;
-  let selectedExtras = [];
-  let removedList = [];
+  const quantity = parseInt(productQtyInput.value) || 1;
+  let finalPrice = selectedProduct.price;
+  let removed = [];
+  let swapMeat = false;
+  let extras = [];
 
-  if (selectedProduct.isDrink) {
-    const selectedFlavor = removeIngredientsContainer.querySelector('input[name="drinkFlavor"]:checked');
-    if (selectedFlavor) baseName += ` (${selectedFlavor.value})`;
-  } else {
-    const removedChecks = removeIngredientsContainer.querySelectorAll('.remove-ingredient-check:checked');
-    removedList = Array.from(removedChecks).map(chk => chk.value);
+  if (!selectedProduct.isDrink) {
+    document.querySelectorAll('.remove-ing-checkbox:checked').forEach(cb => {
+      removed.push(cb.value);
+    });
 
-    const selectedCheckboxes = extrasContainer.querySelectorAll('input[type="checkbox"]:checked');
-    selectedCheckboxes.forEach(chk => {
-      const extraData = AVAILABLE_EXTRAS[Number(chk.dataset.index)];
-      selectedExtras.push(extraData);
-      unitPrice += extraData.price;
+    if (swapMeatCheckbox && swapMeatCheckbox.checked) {
+      swapMeat = true;
+      finalPrice += 10.00;
+    }
+
+    document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
+      const exName = cb.getAttribute('data-name');
+      const exPrice = parseFloat(cb.getAttribute('data-price'));
+      extras.push(exName);
+      finalPrice += exPrice;
     });
   }
 
   cart.push({
-    name: baseName,
-    unitPrice: unitPrice,
-    qty: qty,
-    removedList: removedList,
-    extras: selectedExtras
+    name: selectedProduct.name,
+    price: finalPrice,
+    quantity: quantity,
+    removed: removed,
+    swapMeat: swapMeat,
+    extras: extras
   });
 
-  renderCart();
-  closeQuantityModal();
+  updateCartUI();
+  if (qtyModal) qtyModal.classList.remove('active');
 });
 
-function renderCart() {
-  orderItems.innerHTML = '';
-  const hasItems = cart.length > 0;
-  cartEmptyElement.style.display = hasItems ? 'none' : 'block';
+function updateCartUI() {
+  const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  if (cartCount) cartCount.textContent = totalCount;
 
-  let totalItems = 0;
-  let totalValue = 0;
+  if (!orderItems) return;
+  orderItems.innerHTML = '';
+
+  if (cart.length === 0) {
+    if (cartEmpty) cartEmpty.style.display = 'block';
+    if (totalElement) totalElement.textContent = 'R$ 0,00';
+    return;
+  }
+
+  if (cartEmpty) cartEmpty.style.display = 'none';
+  let grandTotal = 0;
 
   cart.forEach((item, index) => {
-    totalItems += item.qty;
-    const itemTotal = item.unitPrice * item.qty;
-    totalValue += itemTotal;
+    const itemTotal = item.price * item.quantity;
+    grandTotal += itemTotal;
 
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex; justify-between; margin-bottom:10px;';
-    row.innerHTML = `
-      <div>
-        <strong>${item.qty}x ${item.name}</strong> - ${formatCurrency(itemTotal)}
+    const div = document.createElement('div');
+    div.className = 'order-item';
+
+    let detailsHtml = '';
+    if (item.removed && item.removed.length > 0) {
+      detailsHtml += `<br><small style="color: #ff6b6b;">Sem: ${item.removed.join(', ')}</small>`;
+    }
+    if (item.swapMeat) {
+      detailsHtml += `<br><small style="color: #ff8c00;">Com Carne (+R$10)</small>`;
+    }
+    if (item.extras && item.extras.length > 0) {
+      detailsHtml += `<br><small style="color: #4cd137;">Add: ${item.extras.join(', ')}</small>`;
+    }
+
+    div.innerHTML = `
+      <div style="flex: 1;">
+        <strong>${item.quantity}x ${item.name}</strong> - R$ ${itemTotal.toFixed(2)}
+        ${detailsHtml}
       </div>
-      <button onclick="cart.splice(${index},1); renderCart();" style="color:red; background:none; border:none; cursor:pointer;">&times;</button>
+      <button type="button" onclick="removeItemFromCart(${index})" style="background:none; border:none; color:#ff4757; cursor:pointer; font-weight:bold; margin-left:10px;">X</button>
     `;
-    orderItems.appendChild(row);
+    orderItems.appendChild(div);
   });
 
-  if (cartCountElement) cartCountElement.textContent = totalItems;
-  totalElement.textContent = formatCurrency(totalValue);
+  if (totalElement) totalElement.textContent = `R$ ${grandTotal.toFixed(2)}`;
 }
 
-btnCheckout.addEventListener('click', async () => {
-  const token = localStorage.getItem('token');
-  if (!token) return alert('Faça login novamente.');
-  if (cart.length === 0) return alert('Carrinho vazio!');
+window.removeItemFromCart = function(index) {
+  cart.splice(index, 1);
+  updateCartUI();
+};
 
-  const totalValue = cart.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
-
-  try {
-    btnCheckout.disabled = true;
-    const response = await fetch(`${API_URL}/api/order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ items: cart, total: totalValue })
-    });
-
-    if (!response.ok) throw new Error('Erro ao enviar pedido');
-
-    const data = await response.json();
-    orderSuccessDetails.innerHTML = `<p>Obrigado, <strong>${data.customerName}</strong>!</p>`;
-
-    cartModal.classList.remove('active');
-    orderSuccessModal.classList.add('active');
-    cart.length = 0;
-    renderCart();
-
-  } catch (err) {
-    alert(err.message);
-  } finally {
-    btnCheckout.disabled = false;
-  }
+cartFloatingBtn?.addEventListener('click', () => {
+  if (cartModal) cartModal.classList.add('active');
 });
 
-btnCloseSuccessModal.addEventListener('click', () => orderSuccessModal.classList.remove('active'));
-cartFloatingBtn.addEventListener('click', () => cartModal.classList.add('active'));
-closeCartModalBtn.addEventListener('click', () => cartModal.classList.remove('active'));
+closeCartModal?.addEventListener('click', () => {
+  if (cartModal) cartModal.classList.remove('active');
+});
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadProductsFromDB();
+// Finalizar Pedido e Enviar para Impressão
+document.getElementById('btnCheckout')?.addEventListener('click', async () => {
+  const customerName = customerNameInput?.value.trim();
+
+  if (!customerName) {
+    alert('Por favor, digite o nome do cliente!');
+    return;
+  }
+
+  if (cart.length === 0) {
+    alert('Seu carrinho está vazio!');
+    return;
+  }
+
+  const orderData = {
+    orderId: Math.floor(1000 + Math.random() * 9000),
+    customerName: customerName,
+    items: cart,
+    total: cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)
+  };
+
+  try {
+    const response = await fetch('/api/print-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      console.log('✅ Impressão enviada com sucesso!');
+    } else {
+      alert(`Aviso: ${result.error}`);
+    }
+  } catch (err) {
+    console.error('Erro de conexão:', err);
+    alert('Não foi possível conectar com o servidor local.');
+  }
+
+  const successModal = document.getElementById('orderSuccessModal');
+  if (successModal) successModal.classList.add('active');
+
+  cart = [];
+  if (customerNameInput) customerNameInput.value = '';
+  updateCartUI();
+  if (cartModal) cartModal.classList.remove('active');
+});
+
+document.getElementById('btnCloseSuccessModal')?.addEventListener('click', () => {
+  const successModal = document.getElementById('orderSuccessModal');
+  if (successModal) successModal.classList.remove('active');
 });
