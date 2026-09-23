@@ -24,6 +24,12 @@
       </div>
       
       <div class="modal-body">
+        <!-- Seção para Escolha de Sabor (Bebidas) -->
+        <div id="flavorSection" class="extras-section" style="display: none;">
+          <h4>Escolha o sabor:</h4>
+          <div id="flavorContainer" class="extras-container"></div>
+        </div>
+
         <!-- Seção para Remover Ingredientes -->
         <div id="removeIngredientsSection" class="extras-section" style="display: none;">
           <h4>Retirar ingredientes?</h4>
@@ -232,14 +238,61 @@
     </section>
 
     <section class="drinks">
-      <h1>BEBIDAS</h1>
-      <div class="drink-list">
-        <button class="drink menu-item" onclick="openQuantityModal('Refrigerante lata', 7, true)"><span>REFRIGERANTE LATA</span><b>R$ 7,00</b><small>REFRIGERANTE 290ML</small></button>
-        <button class="drink menu-item" onclick="openQuantityModal('Suco lata', 7, true)"><span>SUCO LATA</span><b>R$ 7,00</b><small>SUCO 290ML</small></button>
-        <button class="drink menu-item" onclick="openQuantityModal('H20H', 8, true)"><span>H20H</span><b>R$ 8,00</b><small>GARRAFA 500ML</small></button>
-        <button class="drink menu-item" onclick="openQuantityModal('Água c/ gás', 4, true)"><span>ÁGUA C/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
-        <button class="drink menu-item" onclick="openQuantityModal('Água s/ gás', 4, true)"><span>ÁGUA S/ GÁS</span><b>R$ 4,00</b><small>GARRAFA 500ML</small></button>
-      </div>
+      <div class="category-pill" style="margin-top: 30px;">BEBIDAS</div>
+      <div class="subtitle" style="margin-bottom: 20px;">geladas e refrescantes</div>
+      
+      <section class="burgers" id="drinks-container">
+        <!-- O terceiro parâmetro (true) ativa a exibição de sabores no modal -->
+        <article class="burger" onclick="openQuantityModal('Refrigerante lata', 7, true)">
+          <div class="burger-copy">
+            <div class="burger-heading">
+              <h2>REFRIGERANTE LATA</h2>
+              <strong>R$ 7,00</strong>
+            </div>
+            <p>REFRIGERANTE 290ML (Clique para escolher o sabor)</p>
+          </div>
+        </article>
+
+        <article class="burger" onclick="openQuantityModal('Suco lata', 7, true)">
+          <div class="burger-copy">
+            <div class="burger-heading">
+              <h2>SUCO LATA</h2>
+              <strong>R$ 7,00</strong>
+            </div>
+            <p>SUCO 290ML (Clique para escolher o sabor)</p>
+          </div>
+        </article>
+
+        <article class="burger" onclick="openQuantityModal('H20H', 8, true)">
+          <div class="burger-copy">
+            <div class="burger-heading">
+              <h2>H20H</h2>
+              <strong>R$ 8,00</strong>
+            </div>
+            <p>GARRAFA 500ML (Clique para escolher o sabor)</p>
+          </div>
+        </article>
+
+        <article class="burger" onclick="openQuantityModal('Água c/ gás', 4, false)">
+          <div class="burger-copy">
+            <div class="burger-heading">
+              <h2>ÁGUA C/ GÁS</h2>
+              <strong>R$ 4,00</strong>
+            </div>
+            <p>GARRAFA 500ML</p>
+          </div>
+        </article>
+
+        <article class="burger" onclick="openQuantityModal('Água s/ gás', 4, false)">
+          <div class="burger-copy">
+            <div class="burger-heading">
+              <h2>ÁGUA S/ GÁS</h2>
+              <strong>R$ 4,00</strong>
+            </div>
+            <p>GARRAFA 500ML</p>
+          </div>
+        </article>
+      </section>
     </section>
   </main>
 

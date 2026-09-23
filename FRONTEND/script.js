@@ -1,282 +1,342 @@
+// --- ESTADO GLOBAL DO CARRINHO E MODAL ---
 let cart = [];
-let selectedProduct = null;
+let currentProduct = null;
 
-const removableIngredients = {
-  Texas: ['Cebola Roxa', 'Alface', 'Rúcula', 'Bacon', 'Molho Barbecue'],
-  Classic: ['Cebola Roxa', 'Alface Americana', 'Bacon'],
-  Vegano: ['Cebola Roxa', 'Alface Americana', 'Tomate'],
-  Ruby: ['Cheddar'],
-  Caribe: ['Cebola Caramelizada', 'Bacon'],
-  Verona: ['Cebola Roxa', 'Rúcula', 'Bacon', 'Mel'],
-  Supreme: ['Cebola Roxa', 'Alface', 'Tomate', 'Catupiry', 'Cebola Crispy'],
-  Viena: ['Cebola Roxa', 'Rúcula', 'Tomate', 'Picles', 'Bacon'],
-  Gold: ['Cebola Roxa', 'Alface Americana', 'Bacon']
+// Configuração de Adicionais e Ingredientes por Produto
+const productCustomizations = {
+  'Texas': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cebola Roxa', 'Alface', 'Rúcula', 'Cheddar', 'Mussarela', 'Canastra', 'Bacon', 'Molho Barbecue'],
+    extras: ['Bacon Extra', 'Queijo Extra', 'Ovo', 'Carne 210g Extra']
+  },
+  'Classic': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cebola Roxa', 'Alface Americana', 'Cheddar', 'Bacon'],
+    extras: ['Bacon Extra', 'Queijo Extra', 'Ovo', 'Carne 210g Extra']
+  },
+  'Vegano': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cebola Roxa', 'Alface Americana', 'Tomate'],
+    extras: ['Queijo Vegano Extra', 'Molho Especial']
+  },
+  'Ruby': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cheddar'],
+    extras: ['Bacon Extra', 'Queijo Extra', 'Ovo', 'Carne 210g Extra']
+  },
+  'Caribe': {
+    removable: ['Pão de Brioche', 'Maionese', 'Canastra', 'Cebola Caramelizada', 'Bacon'],
+    extras: ['Bacon Extra', 'Queijo Extra', 'Ovo', 'Carne 210g Extra']
+  },
+  'Verona': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cebola Roxa', 'Rúcula', 'Brie', 'Bacon', 'Mel'],
+    extras: ['Bacon Extra', 'Queijo Brie Extra', 'Ovo', 'Carne 210g Extra']
+  },
+  'Supreme': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cebola Roxa', 'Alface', 'Tomate', 'Catupiry', 'Cebola Crispy'],
+    extras: ['Bacon Extra', 'Catupiry Extra', 'Ovo']
+  },
+  'Viena': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cebola Roxa', 'Rúcula', 'Tomate', 'Picles', 'Bacon'],
+    extras: ['Bacon Extra', 'Queijo Extra', 'Ovo', 'Carne 210g Extra']
+  },
+  'Gold': {
+    removable: ['Pão de Brioche', 'Maionese', 'Cebola Roxa', 'Alface Americana', 'Cheddar', 'Bacon'],
+    extras: ['Bacon Extra', 'Queijo Extra', 'Ovo', 'Carne 210g Extra']
+  }
 };
 
-const availableExtras = [
-  { name: 'Hambúrguer 210g extra', price: 12.00 },
-  { name: 'Bacon extra', price: 6.00 },
-  { name: 'Queijo Cheddar extra', price: 5.00 },
-  { name: 'Maionese da casa extra', price: 4.00 }
-];
+const EXTRA_PRICE = 5.00; // Preço padrão para adicionais de hambúrguer
 
-const qtyModal = document.getElementById('quantityModal');
-const modalProductName = document.getElementById('modalProductName');
-const productQtyInput = document.getElementById('productQty');
-const removeIngredientsSection = document.getElementById('removeIngredientsSection');
-const removeIngredientsContainer = document.getElementById('removeIngredientsContainer');
-const meatOptionSection = document.getElementById('meatOptionSection');
-const swapMeatCheckbox = document.getElementById('swapMeatCheckbox');
-const extrasSection = document.getElementById('extrasSection');
-const extrasContainer = document.getElementById('extrasContainer');
+// --- ABRIR MODAL DE QUANTIDADE E CUSTOMIZAÇÃO ---
+function openQuantityModal(productName, price, hasFlavors = false) {
+  currentProduct = { name: productName, basePrice: price, hasFlavors };
+  
+  document.getElementById('modalProductNameinnerText') || (document.getElementById('modalProductName').innerText = productName);
+  document.getElementById('productQty').value = 1;
 
-const cartModal = document.getElementById('cartModal');
-const cartFloatingBtn = document.getElementById('cartFloatingBtn');
-const closeCartModal = document.getElementById('closeCartModal');
-const cartCount = document.getElementById('cartCount');
-const cartEmpty = document.getElementById('cartEmpty');
-const orderItems = document.getElementById('orderItems');
-const totalElement = document.getElementById('total');
-const customerNameInput = document.getElementById('customerNameInput');
+  // Gerenciamento de Sabores (Bebidas)
+  const flavorSection = document.getElementById('flavorSection');
+  const flavorContainer = document.getElementById('flavorContainer');
+  
+  if (flavorSection && flavorContainer) {
+    if (hasFlavors) {
+      flavorSection.style.display = 'block';
+      flavorContainer.innerHTML = '';
 
-window.openQuantityModal = function(name, price, isDrink = false) {
-  selectedProduct = { name, price: Number(price), isDrink };
+      let flavorsList = [];
+      if (productName.includes('Refrigerante')) {
+        flavorsList = ['Coca-Cola', 'Coca-Cola Zero', 'Guaraná Antarctica', 'Guaraná Antártica Zero'];
+      } else if (productName.includes('Suco')) {
+        flavorsList = ['Laranja', 'Uva'];
+      } else if (productName.includes('H20H')) {
+        flavorsList = ['Limão', 'Limãozinho'];
+      }
 
-  if (modalProductName) modalProductName.textContent = name;
-  if (productQtyInput) productQtyInput.value = 1;
-
-  if (isDrink) {
-    if (removeIngredientsSection) removeIngredientsSection.style.display = 'none';
-    if (meatOptionSection) meatOptionSection.style.display = 'none';
-    if (extrasSection) extrasSection.style.display = 'none';
-  } else {
-    renderRemoveIngredientsOptions(name);
-    renderMeatOption(name);
-    renderExtrasOptions();
+      flavorsList.forEach((flavor, index) => {
+        flavorContainer.innerHTML += `
+          <label class="extra-option" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; cursor:pointer;">
+            <span>
+              <input type="radio" name="drinkFlavor" value="${flavor}" ${index === 0 ? 'checked' : ''} style="margin-right:8px;" />
+              ${flavor}
+            </span>
+          </label>
+        `;
+      });
+    } else {
+      flavorSection.style.display = 'none';
+    }
   }
 
-  if (qtyModal) qtyModal.classList.add('active');
-};
+  // Gerenciamento de Ingredientes para Retirar
+  const removeSection = document.getElementById('removeIngredientsSection');
+  const removeContainer = document.getElementById('removeIngredientsContainer');
+  const customConfig = productCustomizations[productName];
 
-function renderRemoveIngredientsOptions(productName) {
-  if (!removeIngredientsContainer) return;
-  removeIngredientsContainer.innerHTML = '';
-
-  const ingredients = removableIngredients[productName] || [];
-  if (ingredients.length === 0) {
-    removeIngredientsSection.style.display = 'none';
-    return;
+  if (removeSection && removeContainer) {
+    if (customConfig && customConfig.removable && customConfig.removable.length > 0) {
+      removeSection.style.display = 'block';
+      removeContainer.innerHTML = '';
+      customConfig.removable.forEach(ing => {
+        removeContainer.innerHTML += `
+          <label class="extra-option" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; cursor:pointer;">
+            <span>
+              <input type="checkbox" value="${ing}" class="remove-ing-checkbox" style="margin-right:8px;" />
+              Sem ${ing}
+            </span>
+          </label>
+        `;
+      });
+    } else {
+      removeSection.style.display = 'none';
+    }
   }
 
-  removeIngredientsSection.style.display = 'block';
-  ingredients.forEach(ing => {
-    const label = document.createElement('label');
-    label.className = 'extra-option';
-    label.innerHTML = `
-      <span>
-        <input type="checkbox" class="remove-ing-checkbox" value="${ing}" />
-        <span class="custom-checkbox"></span>
-        Sem ${ing}
-      </span>
-    `;
-    removeIngredientsContainer.appendChild(label);
-  });
-}
-
-function renderMeatOption(productName) {
-  if (!meatOptionSection) return;
-  if (swapMeatCheckbox) swapMeatCheckbox.checked = false;
-
-  if (productName === 'Supreme') {
-    meatOptionSection.style.display = 'block';
-  } else {
-    meatOptionSection.style.display = 'none';
+  // Gerenciamento de Troca de Carne (Exclusivo Supreme)
+  const meatSection = document.getElementById('meatOptionSection');
+  if (meatSection) {
+    if (productName === 'Supreme') {
+      meatSection.style.display = 'block';
+      document.getElementById('swapMeatCheckbox').checked = false;
+    } else {
+      meatSection.style.display = 'none';
+    }
   }
+
+  // Gerenciamento de Adicionais
+  const extrasSection = document.getElementById('extrasSection');
+  const extrasContainer = document.getElementById('extrasContainer');
+  if (extrasSection && extrasContainer) {
+    if (customConfig && customConfig.extras && customConfig.extras.length > 0) {
+      extrasSection.style.display = 'block';
+      extrasContainer.innerHTML = '';
+      customConfig.extras.forEach(extra => {
+        extrasContainer.innerHTML += `
+          <label class="extra-option" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; cursor:pointer;">
+            <span>
+              <input type="checkbox" value="${extra}" class="extra-item-checkbox" style="margin-right:8px;" />
+              ${extra}
+            </span>
+            <span style="color:#ff8c00; font-weight:bold;">+R$ ${EXTRA_PRICE.toFixed(2).replace('.', ',')}</span>
+          </label>
+        `;
+      });
+    } else {
+      extrasSection.style.display = 'none';
+    }
+  }
+
+  const modal = document.getElementById('quantityModal');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.style.display = 'flex';
 }
 
-function renderExtrasOptions() {
-  if (!extrasContainer) return;
-  extrasContainer.innerHTML = '';
-  extrasSection.style.display = 'block';
-
-  availableExtras.forEach(extra => {
-    const label = document.createElement('label');
-    label.className = 'extra-option';
-    label.innerHTML = `
-      <span>
-        <input type="checkbox" class="extra-checkbox" data-name="${extra.name}" data-price="${extra.price}" />
-        <span class="custom-checkbox"></span>
-        ${extra.name}
-      </span>
-      <span class="price">+R$ ${extra.price.toFixed(2)}</span>
-    `;
-    extrasContainer.appendChild(label);
-  });
-}
-
-document.getElementById('btnMinus')?.addEventListener('click', () => {
-  let val = parseInt(productQtyInput.value) || 1;
-  if (val > 1) productQtyInput.value = val - 1;
+// --- CONTROLE DE QUANTIDADE NO MODAL ---
+document.getElementById('btnPlus')?.addEventListener('click', () => {
+  const input = document.getElementById('productQty');
+  if (input) input.value = Math.min(99, parseInt(input.value) + 1);
 });
 
-document.getElementById('btnPlus')?.addEventListener('click', () => {
-  let val = parseInt(productQtyInput.value) || 1;
-  if (val < 99) productQtyInput.value = val + 1;
+document.getElementById('btnMinus')?.addEventListener('click', () => {
+  const input = document.getElementById('productQty');
+  if (input) input.value = Math.max(1, parseInt(input.value) - 1);
 });
 
 document.getElementById('btnCancelQty')?.addEventListener('click', () => {
-  if (qtyModal) qtyModal.classList.remove('active');
+  document.getElementById('quantityModal').style.display = 'none';
 });
 
+// --- CONFIRMAR E ADICIONAR AO CARRINHO ---
 document.getElementById('btnConfirmQty')?.addEventListener('click', () => {
-  if (!selectedProduct) return;
+  if (!currentProduct) return;
 
-  const quantity = parseInt(productQtyInput.value) || 1;
-  let finalPrice = selectedProduct.price;
-  let removed = [];
-  let swapMeat = false;
-  let extras = [];
+  const qty = parseInt(document.getElementById('productQty').value) || 1;
+  let finalPrice = currentProduct.basePrice;
 
-  if (!selectedProduct.isDrink) {
-    document.querySelectorAll('.remove-ing-checkbox:checked').forEach(cb => {
-      removed.push(cb.value);
-    });
-
-    if (swapMeatCheckbox && swapMeatCheckbox.checked) {
-      swapMeat = true;
-      finalPrice += 10.00;
-    }
-
-    document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
-      const exName = cb.getAttribute('data-name');
-      const exPrice = parseFloat(cb.getAttribute('data-price'));
-      extras.push(exName);
-      finalPrice += exPrice;
-    });
+  let selectedFlavor = '';
+  if (currentProduct.hasFlavors) {
+    const checkedFlavor = document.querySelector('input[name="drinkFlavor"]:checked');
+    if (checkedFlavor) selectedFlavor = checkedFlavor.value;
   }
 
-  cart.push({
-    name: selectedProduct.name,
-    price: finalPrice,
-    quantity: quantity,
-    removed: removed,
-    swapMeat: swapMeat,
-    extras: extras
+  let removedList = [];
+  document.querySelectorAll('.remove-ing-checkbox:checked').forEach(cb => {
+    removedList.push(cb.value);
   });
 
+  let swapMeat = false;
+  const swapCheckbox = document.getElementById('swapMeatCheckbox');
+  if (swapCheckbox && swapCheckbox.checked) {
+    swapMeat = true;
+    finalPrice += 10.00; // Adicional da troca de frango por carne no Supreme
+  }
+
+  let extrasList = [];
+  document.querySelectorAll('.extra-item-checkbox:checked').forEach(cb => {
+    extrasList.push(cb.value);
+    finalPrice += EXTRA_PRICE;
+  });
+
+  const cartItem = {
+    id: Date.now(),
+    name: currentProduct.name,
+    price: finalPrice,
+    quantity: qty,
+    flavor: selectedFlavor,
+    removed: removedList,
+    swapMeat: swapMeat,
+    extras: extrasList
+  };
+
+  cart.push(cartItem);
   updateCartUI();
-  if (qtyModal) qtyModal.classList.remove('active');
+
+  document.getElementById('quantityModal').style.display = 'none';
 });
 
+// --- ATUALIZAR INTERFACE DO CARRINHO ---
 function updateCartUI() {
+  const cartCount = document.getElementById('cartCount');
   const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  if (cartCount) cartCount.textContent = totalCount;
+  if (cartCount) cartCount.innerText = totalCount;
 
-  if (!orderItems) return;
-  orderItems.innerHTML = '';
+  const orderItemsContainer = document.getElementById('orderItems');
+  const cartEmpty = document.getElementById('cartEmpty');
+  const totalElement = document.getElementById('total');
+
+  if (!orderItemsContainer) return;
 
   if (cart.length === 0) {
     if (cartEmpty) cartEmpty.style.display = 'block';
-    if (totalElement) totalElement.textContent = 'R$ 0,00';
+    orderItemsContainer.innerHTML = '';
+    if (totalElement) totalElement.innerText = 'R$ 0,00';
     return;
   }
 
   if (cartEmpty) cartEmpty.style.display = 'none';
+  orderItemsContainer.innerHTML = '';
   let grandTotal = 0;
 
   cart.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
     grandTotal += itemTotal;
 
-    const div = document.createElement('div');
-    div.className = 'order-item';
-
     let detailsHtml = '';
-    if (item.removed && item.removed.length > 0) {
-      detailsHtml += `<br><small style="color: #ff6b6b;">Sem: ${item.removed.join(', ')}</small>`;
-    }
-    if (item.swapMeat) {
-      detailsHtml += `<br><small style="color: #ff8c00;">Com Carne (+R$10)</small>`;
-    }
-    if (item.extras && item.extras.length > 0) {
-      detailsHtml += `<br><small style="color: #4cd137;">Add: ${item.extras.join(', ')}</small>`;
-    }
+    if (item.flavor) detailsHtml += `<br><small style="color:#00f5d4;">Sabor: ${item.flavor}</small>`;
+    if (item.removed && item.removed.length > 0) detailsHtml += `<br><small style="color:#ff4757;">Sem: ${item.removed.join(', ')}</small>`;
+    if (item.swapMeat) detailsHtml += `<br><small style="color:#ffb703;">Troca por Carne (+R$ 10,00)</small>`;
+    if (item.extras && item.extras.length > 0) detailsHtml += `<br><small style="color:#2ecc71;">Add: ${item.extras.join(', ')}</small>`;
 
-    div.innerHTML = `
-      <div style="flex: 1;">
-        <strong>${item.quantity}x ${item.name}</strong> - R$ ${itemTotal.toFixed(2)}
-        ${detailsHtml}
+    orderItemsContainer.innerHTML += `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#181818; padding:10px; border-radius:6px; margin-bottom:8px;">
+        <div>
+          <strong>${item.quantity}x ${item.name}</strong>
+          ${detailsHtml}
+        </div>
+        <div style="text-align:right;">
+          <span style="color:#ff8c00; font-weight:bold;">R$ ${itemTotal.toFixed(2).replace('.', ',')}</span>
+          <br>
+          <button onclick="removeFromCart(${index})" style="background:transparent; border:none; color:#ff4757; cursor:pointer; font-size:0.85rem; margin-top:4px;">Remover</button>
+        </div>
       </div>
-      <button type="button" onclick="removeItemFromCart(${index})" style="background:none; border:none; color:#ff4757; cursor:pointer; font-weight:bold; margin-left:10px;">X</button>
     `;
-    orderItems.appendChild(div);
   });
 
-  if (totalElement) totalElement.textContent = `R$ ${grandTotal.toFixed(2)}`;
+  if (totalElement) {
+    totalElement.innerText = `R$ ${grandTotal.toFixed(2).replace('.', ',')}`;
+  }
 }
 
-window.removeItemFromCart = function(index) {
+function removeFromCart(index) {
   cart.splice(index, 1);
   updateCartUI();
-};
+}
 
-cartFloatingBtn?.addEventListener('click', () => {
-  if (cartModal) cartModal.classList.add('active');
-});
-
-closeCartModal?.addEventListener('click', () => {
-  if (cartModal) cartModal.classList.remove('active');
-});
-
-// Finalizar Pedido e Enviar para Impressão
-document.getElementById('btnCheckout')?.addEventListener('click', async () => {
-  const customerName = customerNameInput?.value.trim();
-
-  if (!customerName) {
-    alert('Por favor, digite o nome do cliente!');
-    return;
+// --- ABRIR / FECHAR MODAL DO CARRINHO ---
+document.getElementById('cartFloatingBtn')?.addEventListener('click', () => {
+  const modal = document.getElementById('cartModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
   }
+});
 
+document.getElementById('closeCartModal')?.addEventListener('click', () => {
+  const modal = document.getElementById('cartModal');
+  if (modal) modal.style.display = 'none';
+});
+
+// --- FINALIZAR PEDIDO (CHECKOUT) ---
+document.getElementById('btnCheckout')?.addEventListener('click', async () => {
   if (cart.length === 0) {
     alert('Seu carrinho está vazio!');
     return;
   }
 
-  const orderData = {
-    orderId: Math.floor(1000 + Math.random() * 9000),
+  const customerNameInput = document.getElementById('customerNameInput');
+  const customerName = customerNameInput ? customerNameInput.value.trim() : '';
+
+  if (!customerName) {
+    alert('Por favor, informe o seu nome para chamada.');
+    if (customerNameInput) customerNameInput.focus();
+    return;
+  }
+
+  const totalOrderPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  const orderPayload = {
     customerName: customerName,
     items: cart,
-    total: cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)
+    total: totalOrderPrice
   };
 
   try {
     const response = await fetch('/api/print-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData)
+      body: JSON.stringify(orderPayload)
     });
 
     const result = await response.json();
+
     if (result.success) {
-      console.log('✅ Impressão enviada com sucesso!');
+      document.getElementById('cartModal').style.display = 'none';
+      cart = [];
+      updateCartUI();
+      if (customerNameInput) customerNameInput.value = '';
+
+      // Mostra modal de sucesso
+      const successModal = document.getElementById('orderSuccessModal');
+      if (successModal) {
+        successModal.style.display = 'flex';
+        successModal.setAttribute('aria-hidden', 'false');
+      }
     } else {
-      alert(`Aviso: ${result.error}`);
+      alert('Erro ao enviar o pedido. Tente novamente.');
     }
   } catch (err) {
-    console.error('Erro de conexão:', err);
-    alert('Não foi possível conectar com o servidor local.');
+    console.error('Erro na requisição de checkout:', err);
+    alert('Erro de comunicação com o servidor.');
   }
-
-  const successModal = document.getElementById('orderSuccessModal');
-  if (successModal) successModal.classList.add('active');
-
-  cart = [];
-  if (customerNameInput) customerNameInput.value = '';
-  updateCartUI();
-  if (cartModal) cartModal.classList.remove('active');
 });
 
 document.getElementById('btnCloseSuccessModal')?.addEventListener('click', () => {
   const successModal = document.getElementById('orderSuccessModal');
-  if (successModal) successModal.classList.remove('active');
+  if (successModal) successModal.style.display = 'none';
 });
